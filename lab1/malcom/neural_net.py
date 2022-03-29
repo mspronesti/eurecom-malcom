@@ -253,15 +253,11 @@ class TwoLayerNet(object):
           the elements of X. For all i, y_pred[i] = c means that X[i] is predicted
           to have class c, where 0 <= c < C.
         """
-        y_pred = None
-
         ###########################################################################
         # TODO: Implement this function; it should be very simple!                #
         ###########################################################################
         # *****START OF YOUR CODE*****
-
-        pass
-
+        y_pred = np.argmax(self.loss(X), axis=1)
         # *****END OF YOUR CODE*****
 
         return y_pred
