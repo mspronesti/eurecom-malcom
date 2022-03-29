@@ -3,6 +3,8 @@ from __future__ import print_function
 from builtins import range
 from builtins import object
 import numpy as np
+from .activations import relu, softmax
+
 import matplotlib.pyplot as plt
 
 
@@ -83,11 +85,11 @@ class TwoLayerNet(object):
         # *****START OF YOUR CODE*****
 
         # first layer
-        scores = X @ W1 + b1
-        # apply activation
-        scores = relu(scores)
+        fc1 = X @ W1 + b1
+        # apply relu activation
+        X_post_act = relu(fc1)
         # second layer
-        scores = scores @ W2 + b2
+        scores = X_post_act @ W2 + b2
         # *****END OF YOUR CODE*****
 
         # If the targets are not given then jump out, we are done
@@ -102,16 +104,17 @@ class TwoLayerNet(object):
         # classifier loss.                                                          #
         #############################################################################
         # *****START OF YOUR CODE*****
-
-        # masking softmax output for "wrong" classes
-        s = softmax(scores)
-        prob = s[np.arange(s.shape[0]), y]
-
-        regularization = reg * (np.sum(W2**2) + np.sum(W1**2))
-        # sum over rows and
+        # compute the matrix of softmaxes
+        smaxes = softmax(scores)
+        # extract from the softmax the cells corresponding
+        # to the entries of y, thus getting the probabily vector
+        prob = smaxes[np.arange(smaxes.shape[0]), y]
+        # regularization loss term
+        reg_loss = reg * (np.sum(W2**2) + np.sum(W1**2))
         # average the column vector
-        # containing the losses for each sample
-        loss = np.mean(- np.log(prob)) + regularization
+        # containing the probability for each sample
+        # (i.e. data loss) then add regularization loss
+        loss = np.mean(-np.log(prob)) + reg_loss
         # *****END OF YOUR CODE*****
 
         # Backward pass: compute gradients
@@ -123,9 +126,35 @@ class TwoLayerNet(object):
         # grads['W1'] should store the gradient on W1, and be a matrix of same size #
         #############################################################################
         # *****START OF YOUR CODE*****
+        smaxes[np.arange(N), y] -= 1
+        smaxes /= N
 
-        pass
+        # computing gradients, starting from the output and
+        # going back:
+        # W2 gradient
+        dW2 = X_post_act.T @ smaxes  # [HxN] * [NxC]
 
+        # b2 gradient
+        db2 = smaxes.sum(axis=0)
+
+        # W1 gradient
+        dW1 = smaxes @ W2.T  # [NxC] * [CxH] = [NxH]
+        dfc1 = dW1 * (fc1 > 0)  # [NxH] .* [NxH] = [NxH]
+        dW1 = X.T @ dfc1     # [DxN] * [NxH] = [DxH]
+
+        # b1 gradient
+        db1 = dfc1.sum(axis=0)
+
+        # regularization gradient
+        dW1 += reg * 2 * W1
+        dW2 += reg * 2 * W2
+
+        grads = {
+            'W1': dW1,
+            'b1': db1,
+            'W2': dW2,
+            'b2': db2
+        }
         # *****END OF YOUR CODE*****
 
         return loss, grads
@@ -236,17 +265,4 @@ class TwoLayerNet(object):
         # *****END OF YOUR CODE*****
 
         return y_pred
-
-
-# Added by us
-def relu(x: np.ndarray):
-    x[x <= 0] = 0
-    return x
-
-
-def softmax(x: np.ndarray):
-    X_ = x.copy()
-    for i, sample in enumerate(x):
-        X_[i] = np.exp(sample) / np.sum(np.exp(sample))
-    return X_
 
