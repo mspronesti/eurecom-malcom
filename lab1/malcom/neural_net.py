@@ -168,7 +168,7 @@ class TwoLayerNet(object):
 
         Inputs:
         - X: A numpy array of shape (N, D) giving training data.
-        - y: A numpy array f shape (N,) giving training labels; y[i] = c means that
+        - y: A numpy array of shape (N,) giving training labels; y[i] = c means that
           X[i] has label c, where 0 <= c < C.
         - X_val: A numpy array of shape (N_val, D) giving validation data.
         - y_val: A numpy array of shape (N_val,) giving validation labels.
@@ -198,7 +198,10 @@ class TwoLayerNet(object):
             #########################################################################
             # *****START OF YOUR CODE*****
 
-            pass
+            # select indices of mini batch's samples, without replacement
+            indices = np.random.choice(num_train, batch_size, replace=False)
+            X_batch = X[indices]
+            y_batch = y[indices]
 
             # *****END OF YOUR CODE*****
 
@@ -214,7 +217,9 @@ class TwoLayerNet(object):
             #########################################################################
             # *****START OF YOUR CODE*****
 
-            pass
+            # update parameters using gradients
+            for k in self.params:
+                self.params[k] -= learning_rate * grads[k]
 
             # *****END OF YOUR CODE*****
 
