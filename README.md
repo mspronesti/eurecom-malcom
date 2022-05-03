@@ -7,7 +7,5 @@ This repository contains personal solutions to the lab assignments of the MALCOM
 - Two Layer Neural Network
 
 ## Lab2
-
-- Autoencoders
-
+- Generative Adversarial Networks
 
